@@ -6,12 +6,12 @@ class SQSConsumer:
         self.sqs = boto3.client('sqs')
         self.queue_url = queue_url
 
-    def process_message(self, message, function):
+    def process_message(self, message):
         print("Mensagem recebida:", message['Body'])
 
         # Aqui você pode adicionar lógica para processar a mensagem recebida
 
-    def poll_messages(self, handler: function):
+    def poll_messages(self, handler):
         while True:
             try:
                 response = self.sqs.receive_message(
@@ -21,7 +21,7 @@ class SQSConsumer:
                 )
                 messages = response.get('Messages', [])
                 for message in messages:
-                    self.process_message(message, handler)
+                    self.process_message(message)
                     # Exclui a mensagem após processá-la
                     self.sqs.delete_message(
                         QueueUrl=self.queue_url,
