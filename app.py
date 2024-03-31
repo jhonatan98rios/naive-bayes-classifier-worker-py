@@ -1,5 +1,5 @@
 # Exemplo de uso
-from src.infra.ClassifierController import ClassifierController
+#from src.infra.ClassifierController import ClassifierController
 from src.infra.SQSConsumer import SQSConsumer
 
 # TODO
@@ -14,9 +14,10 @@ from src.infra.SQSConsumer import SQSConsumer
 
 
 queue_url = 'URL_DA_SUA_FILA_SQS'
+print(queue_url)
 
 sqs_consumer = SQSConsumer(queue_url)
 
-sqs_consumer.poll_messages(
-    handler=ClassifierController.handle_message
-)
+#sqs_consumer.poll_messages(
+#    handler=ClassifierController.handle_message
+#)

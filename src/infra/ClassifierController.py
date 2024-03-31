@@ -21,6 +21,6 @@ class ClassifierController:
             sqs_provider=sqs_provier
         )
 
-        classifier_service.execute()
+        classifier_service.execute(message)
 
 

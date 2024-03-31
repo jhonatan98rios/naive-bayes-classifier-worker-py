@@ -4,7 +4,5 @@ class ClassifierService:
         self.s3_provider = s3_provider
         self.mongodb_repository = mongodb_repository
 
-    def execute():
-        
-
-        pass
+    def execute(message):
+        print(message)
