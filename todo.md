@@ -1,3 +1,14 @@
+# TODO
+#- [x] Escutar a fila do SQS
+#- [x] Coletar o payload com o path
+#- [x] Consumir arquivo CSV do S3
+#- [ ] Treinar o modelo scykitlearn
+#- [ ] Calcular accuracy
+#- [ ] Fazer o upload do arquivo do modelo
+#- [ ] Atualizar o documento no mongodb
+#- [ ] Caso dê erro no treinamento, atualizar o documento com status Failed
+
+
 # Arquitetura
 
 ## Publisher (Node)
@@ -33,3 +44,5 @@
 ## API (Node)
 - Lê os classifiers do mongodb
 
+
+    

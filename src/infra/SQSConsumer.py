@@ -1,33 +1,46 @@
 import boto3
 import time
+import os
+from dotenv.main import load_dotenv
+
+load_dotenv()
+
+AWS_ACCESS_KEY_ID=os.environ['AWS_ACCESS_KEY_ID']
+AWS_SECRET_ACCESS_KEY=os.environ['AWS_SECRET_ACCESS_KEY']
+AWS_REGION=os.environ['AWS_REGION']
+QUEUE_URL=os.environ['QUEUE_URL']
 
 class SQSConsumer:
-    def __init__(self, queue_url):
-        self.sqs = boto3.client('sqs')
-        self.queue_url = queue_url
+    def __init__(self):
 
-    def process_message(self, message):
-        print("Mensagem recebida:", message['Body'])
-
-        # Aqui você pode adicionar lógica para processar a mensagem recebida
+        print(QUEUE_URL)
+        self.queue_url=QUEUE_URL
+        self.sqs = boto3.client(
+            'sqs',
+            aws_access_key_id=AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+            region_name=AWS_REGION
+        )
 
     def poll_messages(self, handler):
+        print('Starting...')
         while True:
             try:
                 response = self.sqs.receive_message(
                     QueueUrl=self.queue_url,
                     MaxNumberOfMessages=1,
-                    WaitTimeSeconds=20  # Tempo de espera máximo (até 20 segundos)
+                    WaitTimeSeconds=20
                 )
                 messages = response.get('Messages', [])
                 for message in messages:
-                    self.process_message(message)
+                    handler(message)
+
                     # Exclui a mensagem após processá-la
-                    self.sqs.delete_message(
-                        QueueUrl=self.queue_url,
-                        ReceiptHandle=message['ReceiptHandle']
-                    )
+                    # self.sqs.delete_message(
+                    #     QueueUrl=self.queue_url,
+                    #     ReceiptHandle=message['ReceiptHandle']
+                    # )
             except Exception as e:
                 print("Erro ao receber mensagens:", e)
-            time.sleep(1)  # Espera 1 segundo antes de consultar a fila novamente
+            time.sleep(2)
 
