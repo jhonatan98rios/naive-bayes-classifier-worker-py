@@ -20,7 +20,7 @@ class S3Provider:
             region_name=AWS_REGION
         )
 
-    def getObject(self, object_key: str):
+    def get_object(self, object_key: str):
         try:
             # Recuperando o objeto do S3
             response = self.s3_client.get_object(
@@ -33,3 +33,10 @@ class S3Provider:
         except Exception as err:
             raise Exception(f"Erro ao recuperar objeto do S3: {err}")
 
+    def send_object(self, object_key: str, buffer):
+        print(type(buffer))
+        try:
+            self.s3_client.put_object(Bucket=self.bucket_name, Key=object_key, Body=buffer)
+            print("Objeto salvo no S3 com sucesso.")
+        except Exception as e:
+            print("Erro ao escrever objeto pkl no S3:", e)

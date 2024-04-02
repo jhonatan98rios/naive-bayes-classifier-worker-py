@@ -43,8 +43,12 @@ class MongoDBRepository:
         except Exception as err:
             raise Exception(f"Erro ao ler documento por ID: {document_id} \n {err}")
 
-    def update(self, query, update_data):
+    def update(self, id, updated_object):
         try:
-            self.collection.update_many(query, update_data)
-        except Exception as err:
-            raise Exception(f"Erro ao atualizar o documento")
+            result = self.collection.update_one({'id': id}, {'$set': updated_object})
+            if result.modified_count == 0:
+                raise ValueError("Documento não encontrado ou não atualizado.")
+            else:
+                print("Documento atualizado com sucesso.")
+        except Exception as e:
+            print("Erro ao atualizar documento:", e)

@@ -25,6 +25,7 @@ class SQSConsumer:
     def poll_messages(self, handler):
         print('Starting...')
         while True:
+            print('Listening...')
             try:
                 response = self.sqs.receive_message(
                     QueueUrl=self.queue_url,
@@ -41,6 +42,6 @@ class SQSConsumer:
                     #     ReceiptHandle=message['ReceiptHandle']
                     # )
             except Exception as e:
-                print("Erro ao receber mensagens:", e)
-            time.sleep(2)
+                print("Erro ao processar o evento:", e)
+            
 

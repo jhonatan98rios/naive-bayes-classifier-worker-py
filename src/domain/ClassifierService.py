@@ -1,7 +1,9 @@
 import io
 import json
-import joblib
+import pickle
 import pandas as pd
+from src.domain.Classifier import Classifier
+from src.domain.EventPayload import EventPayload
 from src.infra.MongoDBRepository import MongoDBRepository
 from src.infra.NaiveBayesClassifierGateway import NaiveBayesClassifier
 from src.infra.S3Provider import S3Provider
@@ -22,28 +24,87 @@ class ClassifierService:
 
 
     def execute(self, body):
-        id, path = self.get_data_from_body(body)
-        csv = self.s3_provider.getObject(path)
-        df = self.get_df_from_csv(csv)
 
-        model = self.naive_bayes_classifier.train(df)
-        model_name = f"{id}.model.pkl"
-        # Salvar o modelo treinado em um arquivo
-        joblib.dump(model, model_name)
+        event = self.get_event_payload_from_body(body)
 
-        
+        try:
+            csv = self.s3_provider.get_object(event.path)
+            df = self.get_df_from_csv(csv)
+            filename, buffer, accuracy = self.train_model(df, event.id)
+            self.s3_provider.send_object(filename, buffer)
+            
+            updated_classifier = {
+                "id": event.id,
+                "name": event.name,
+                "description": event.description,
+                "path": filename,
+                "accuracy": accuracy,
+                "format": event.format,
+                "isPublic": event.isPublic,
+                "owners": event.owners,
+                "rating": 0,
+                "size": buffer,
+                "status": "ready"
+            }
+
+            self.mongodb_repository.update(event.id, updated_classifier)
+        except Exception as err:
+
+            updated_classifier = {
+                "id": event.id,
+                "name": event.name,
+                "description": event.description,
+                "path": filename,
+                "accuracy": accuracy,
+                "format": event.format,
+                "isPublic": event.isPublic,
+                "owners": event.owners,
+                "rating": 0,
+                "size": 0,
+                "status": "failed"
+            }
+
+            self.mongodb_repository.update(event.id, updated_classifier)
+            raise Exception(f"Erro ao realizar o treinamento: {err}")
+                
     
-    def get_data_from_body(self, body):
+    def get_event_payload_from_body(self, body):
         try:
             payload = json.loads(body)
-            return payload["id"], payload["path"]
+            event = EventPayload(
+                id=payload["id"],
+                name=payload["name"],
+                description=payload["description"],
+                path=payload["path"],
+                format=payload["format"],
+                isPublic=payload["isPublic"],
+                owners=payload["owners"],
+                status=payload["status"]
+            )
+
+            return event
         except Exception as err:
             raise Exception(f"Erro ao ler os dados: {err}")
 
 
     def get_df_from_csv(self, csv):
         try:
-            buffer = io.StringIO(csv.decode('utf-8'))
-            return pd.read_csv(buffer, error_bad_lines="skip")
+            buffer = io.BytesIO(csv)
+            return pd.read_csv(buffer, delimiter=";")
         except Exception as err:
             raise Exception(f"Erro ao converter o csv em dataframe: {err}")
+        
+        
+    def train_model(self, df, id):
+        try:
+            model, accuracy = self.naive_bayes_classifier.train(df)
+            filename = f"model/{id}.model.pkl"
+
+            # Salvar o modelo treinado serializado em um buffer
+            buffer = io.BytesIO()
+            pickle.dump(model, buffer)
+            buffer.seek(0)
+                        
+            return filename, buffer, accuracy
+        except Exception as err:
+            raise Exception(f"Erro ao treinar o modelo: {err}")
