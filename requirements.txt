@@ -1,6 +1,6 @@
 boto3==1.23.10
 botocore==1.26.10
-dataclasses==0.8
+dataclasses==0.6
 dnspython==2.2.1
 jmespath==0.10.0
 joblib==1.1.1
