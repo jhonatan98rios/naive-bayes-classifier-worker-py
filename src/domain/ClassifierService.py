@@ -26,11 +26,12 @@ class ClassifierService:
     def execute(self, body):
 
         event = self.get_event_payload_from_body(body)
+        filename = f"model/{event.id}.model.pkl"
 
         try:
             csv = self.s3_provider.get_object(event.path)
             df = self.get_df_from_csv(csv)
-            filename, buffer, accuracy = self.train_model(df, event.id)
+            buffer, accuracy = self.train_model(df)
             self.s3_provider.send_object(filename, buffer)
             
             updated_classifier = {
@@ -43,11 +44,12 @@ class ClassifierService:
                 "isPublic": event.isPublic,
                 "owners": event.owners,
                 "rating": 0,
-                "size": buffer,
+                "size": len(buffer.getbuffer()),
                 "status": "ready"
             }
 
             self.mongodb_repository.update(event.id, updated_classifier)
+
         except Exception as err:
 
             updated_classifier = {
@@ -55,13 +57,13 @@ class ClassifierService:
                 "name": event.name,
                 "description": event.description,
                 "path": filename,
-                "accuracy": accuracy,
                 "format": event.format,
                 "isPublic": event.isPublic,
                 "owners": event.owners,
+                "status": "failed",
+                "accuracy": 0,
                 "rating": 0,
                 "size": 0,
-                "status": "failed"
             }
 
             self.mongodb_repository.update(event.id, updated_classifier)
@@ -95,16 +97,15 @@ class ClassifierService:
             raise Exception(f"Erro ao converter o csv em dataframe: {err}")
         
         
-    def train_model(self, df, id):
+    def train_model(self, df):
         try:
             model, accuracy = self.naive_bayes_classifier.train(df)
-            filename = f"model/{id}.model.pkl"
 
             # Salvar o modelo treinado serializado em um buffer
             buffer = io.BytesIO()
             pickle.dump(model, buffer)
             buffer.seek(0)
                         
-            return filename, buffer, accuracy
+            return buffer, accuracy
         except Exception as err:
             raise Exception(f"Erro ao treinar o modelo: {err}")
