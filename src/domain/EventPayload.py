@@ -6,6 +6,7 @@ class EventPayload:
     id: str
     name: str
     description: str
+    type: str
     format: str
     status: str
     path: str
