@@ -1,5 +1,4 @@
 import boto3
-import time
 import os
 from dotenv.main import load_dotenv
 
@@ -8,7 +7,7 @@ load_dotenv()
 AWS_ACCESS_KEY_ID=os.environ['AWS_ACCESS_KEY_ID']
 AWS_SECRET_ACCESS_KEY=os.environ['AWS_SECRET_ACCESS_KEY']
 AWS_REGION=os.environ['AWS_REGION']
-QUEUE_URL=os.environ['QUEUE_URL']
+QUEUE_URL=os.environ['NUM_QUEUE_URL']
 
 class SQSConsumer:
     def __init__(self):
