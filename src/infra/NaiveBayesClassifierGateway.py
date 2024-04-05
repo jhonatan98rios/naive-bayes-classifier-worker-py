@@ -33,6 +33,6 @@ class NaiveBayesClassifier:
 
             # Calcular a acurácia
             accuracy = accuracy_score(y_test, y_pred)
-            return accuracy
+            return accuracy * 100
         except Exception as err:
             raise Exception(f"Erro ao calcular a acurácia: {err}")
